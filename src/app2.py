@@ -7,6 +7,26 @@ app = Flask(__name__)
 con = MySQL(app)
 
 
+def leer_alumno_bd(mat):
+    try:
+        cursor = con.connection.cursor()
+        sql = "select * from alumnos where matricula {0}".format(mat)
+        cursor.execute(sql)
+        datos = cursor.fetchall()
+        if datos != None:
+            alumno = {'matricula':fila[0],
+                    'nombre':fila[1],
+                    'apaterno':fila[2],
+                    'amaterno':fila[3],
+                    'correo':fila[4]}
+            return alumno
+        else:
+            return None
+
+    except Exception as ex:
+        raise ex
+
+
 
 #FORMA PARA HACER LA CONECCION EN UN SERVIDOR DE MYSQL
 @app.route('/alumnos', methods = ['GET'])
@@ -36,13 +56,14 @@ def list_alumnos():
 @app.route('/alumnos/<mat>', methods = ['GET'])
 def leer_alumno(mat):
     try:
-        cursor = con.connection.cursor()
-        sql = "select * from alumnos where matricula {0}".format(mat)
-        cursor.execute(sql)
-        datos = cursor.fetchall()
-        print(datos)
+        alumno = leer_alumno_bd(mat)
+        if alumno != None:
+            return jsonify({'Alumnos': alumno, 'mensaje': 'el alumno fue encontrado','exito':True})
+        else:
+            return jsonify({'Alumnos': alumno, 'mensaje': 'el alumno NO se encontró', 'exito':False})
+
     except Exception as ex:
-        return jsonify({'mensaje': '{}'.format(ex)})
+        return jsonify({'mensaje': '{}'.format(ex), 'exito':False})
 
 
 
